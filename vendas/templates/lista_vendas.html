@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Vendas — MiniStore{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1>Vendas</h1>
+        <p class="text-muted">{{ vendas|length }} venda(s) registrada(s).</p>
+    </div>
+    <a href="{{ url_for('vendas.nova_venda') }}" class="btn btn-primary">
+        + Nova Venda
+    </a>
+</div>
+
+{% if vendas %}
+<div class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>CLIENTE</th>
+                <th>DATA</th>
+                <th>TOTAL</th>
+                <th>AÇÕES</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for v in vendas %}
+            <tr>
+                <td>{{ v.id }}</td>
+                <td>{{ v.cliente_nome if v.cliente_nome else 'Não identificado' }}</td>
+                <td>{{ v.data_venda.strftime('%d/%m/%Y') if v.data_venda and v.data_venda.strftime is defined else (v.data_venda or '-') }}</td>
+                <td>R$ {{ "%.2f"|format(v.valor_total) if v.valor_total else '0.00' }}</td>
+                <td>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('vendas.detalhe_venda', id=v.id) }}" class="btn btn-sm btn-secondary">
+                            Detalhes
+                        </a>
+                        <form action="{{ url_for('vendas.excluir_venda', id=v.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Deseja excluir esta venda?');">
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                Excluir
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    Nenhuma venda registrada até o momento.
+</div>
+{% endif %}
+{% endblock %}
+```[cite: 6]
+
+*(Nota: Caso o seu `vendas/routes.py` utilize os nomes de rotas `vendas.nova` e `vendas.excluir` em vez de `vendas.nova_venda` e `vendas.excluir_venda`, basta manter os nomes das rotas do seu arquivo).*[cite: 5, 6]
+
+### Como aplicar:
+1. Abra **`vendas/templates/lista_vendas.html`** (ou `lista.html`) no VS Code e cole este código[cite: 5, 6].
+2. Salve com **Ctrl + S**[cite: 18].
+3. No Firefox da VM, pressione **Ctrl + F5** para atualizar a página[cite: 18].

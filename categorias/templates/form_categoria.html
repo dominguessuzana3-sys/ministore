@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {{ 'Editar Categoria' if categoria else 'Nova Categoria' }} — MiniStore
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm p-4 w-100 text-start">
+    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h2 class="h4 mb-0 text-start">{{ 'Editar Categoria' if categoria else 'Nova Categoria' }}</h2>
+        <a href="{{ url_for('categorias.listar') }}" class="btn btn-outline-secondary btn-sm">Voltar</a>
+    </div>
+
+    <form method="POST" class="text-start">
+        <div class="mb-3 text-start">
+            <label for="nome" class="form-label d-block text-start">Nome <span class="text-danger">*</span></label>
+            <input 
+                type="text" 
+                class="form-control text-start" 
+                id="nome" 
+                name="nome" 
+                placeholder="Ex: Informática, Roupas, Bebidas..."
+                value="{{ categoria.nome if categoria else '' }}" 
+                required
+            >
+        </div>
+
+        <div class="mb-3 text-start">
+            <label for="descricao" class="form-label d-block text-start">Descrição</label>
+            <textarea 
+                class="form-control text-start" 
+                id="descricao" 
+                name="descricao" 
+                rows="4"
+                placeholder="Breve descrição da categoria (opcional)"
+            >{{ categoria.descricao if categoria else '' }}</textarea>
+        </div>
+
+        <div class="d-flex gap-2 mt-3 justify-content-start">
+            <button type="submit" class="btn btn-primary">Salvar Categoria</button>
+            <a href="{{ url_for('categorias.listar') }}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

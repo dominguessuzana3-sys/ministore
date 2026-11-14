@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard — MiniStore{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+    <h1>Painel de Controle</h1>
+    <p class="text-muted">Visão geral do sistema MiniStore</p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-start border-primary border-4 p-3">
+            <h6 class="text-uppercase text-muted mb-2">Clientes</h6>
+            <h2 class="fw-bold mb-2">{{ totais.clientes }}</h2>
+            <a href="{{ url_for('clientes.listar') }}" class="text-decoration-none small text-primary">Gerenciar Clientes &rarr;</a>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-start border-success border-4 p-3">
+            <h6 class="text-uppercase text-muted mb-2">Categorias</h6>
+            <h2 class="fw-bold mb-2">{{ totais.categorias }}</h2>
+            <a href="{{ url_for('categorias.listar') }}" class="text-decoration-none small text-success">Gerenciar Categorias &rarr;</a>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-start border-warning border-4 p-3">
+            <h6 class="text-uppercase text-muted mb-2">Produtos</h6>
+            <h2 class="fw-bold mb-2">{{ totais.produtos }}</h2>
+            <a href="{{ url_for('produtos.listar') }}" class="text-decoration-none small text-warning">Gerenciar Produtos &rarr;</a>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm border-start border-danger border-4 p-3">
+            <h6 class="text-uppercase text-muted mb-2">Vendas</h6>
+            <h2 class="fw-bold mb-2">{{ totais.vendas }}</h2>
+            <a href="{{ url_for('vendas.listar_vendas') }}" class="text-decoration-none small text-danger">Ver Histórico &rarr;</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,10 +1,11 @@
 # setup_db.py
+import os
 import mysql.connector
 
 conn = mysql.connector.connect(
-    host='localhost',
-    user='root',
-    password='123mudar'
+    host=os.environ.get('DB_HOST', 'localhost'),
+    user=os.environ.get('DB_ROOT_USER', 'root'),
+    password=os.environ.get('DB_ROOT_PASSWORD', '123mudar')
 )
 
 cursor = conn.cursor()

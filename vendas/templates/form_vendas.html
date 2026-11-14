@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}Nova Venda — MiniStore{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <h1>Nova Venda</h1>
+    <a href="{{ url_for('vendas.listar_vendas') }}" class="btn btn-secondary">Voltar</a>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" style="margin-bottom: 16px;">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<form method="POST" action="{{ url_for('vendas.nova_venda') }}">
+    <div style="display: flex; gap: 24px; margin-bottom: 16px;">
+        <div class="form-group" style="flex: 2;">
+            <label for="id_cliente">Cliente *</label>
+            <select id="id_cliente" name="id_cliente" class="form-control" required>
+                <option value="">Selecione o cliente...</option>
+                {% for cliente in clientes %}
+                    <option value="{{ cliente.id }}">{{ cliente.nome }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group" style="flex: 1;">
+            <label for="data_venda">Data da Venda *</label>
+            <input type="date" id="data_venda" name="data_venda" class="form-control" required>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Itens da Venda</label>
+        <table class="table" id="tabela-itens" style="margin-top: 8px;">
+            <thead>
+                <tr>
+                    <th style="width: 180px;">Cód. Barras</th>
+                    <th>Produto</th>
+                    <th style="width: 90px;">Qtd</th>
+                    <th style="width: 130px;">Preço Unit.</th>
+                    <th style="width: 130px;">Subtotal</th>
+                    <th style="width: 50px;"></th>
+                </tr>
+            </thead>
+            <tbody id="corpo-itens">
+                <tr class="linha-item">
+                    <td>
+                        <input type="text" class="form-control input-codigo" placeholder="Leia ou digite..." style="width: 160px;">
+                    </td>
+                    <td>
+                        <select class="form-control select-produto" name="produto_id[]" required>
+                            <option value="">Selecione...</option>
+                            {% for produto in produtos %}
+                                <option value="{{ produto.id }}"
+                                        data-preco="{{ produto.preco }}"
+                                        data-codigo="{{ produto.codigo if produto.codigo else '' }}">
+                                    {{ produto.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="number" class="form-control input-qtd" name="quantidade[]" value="1" min="1" required>
+                    </td>
+                    <td>
+                        <input type="number" class="form-control input-preco" name="preco_unit[]" value="0.00" step="0.01" readonly>
+                    </td>
+                    <td>
+                        <span class="subtotal-item">R$ 0,00</span>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-remover">✕</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <button type="button" id="btn-add-item" class="btn btn-secondary">+ Adicionar Item</button>
+    </div>
+
+    <div class="form-group" style="text-align: right; font-size: 20px; font-weight: bold; color: #1A1A2E; margin-top: 20px;">
+        Total:
+        <span id="total-geral" style="color: #E94560;">R$ 0,00</span>
+        <input type="hidden" name="total" id="input-total" value="0">
+    </div>
+
+    <div class="form-actions" style="margin-top: 24px;">
+        <button type="submit" class="btn btn-primary">Finalizar Venda</button>
+        <a href="{{ url_for('vendas.listar_vendas') }}" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Define a data de hoje por padrão
+    const campoData = document.getElementById('data_venda');
+    if (campoData && !campoData.value) {
+        campoData.value = new Date().toISOString().split('T')[0];
+    }
+
+    const corpoItens = document.getElementById('corpo-itens');
+    const btnAdd = document.getElementById('btn-add-item');
+
+    function formatarReais(valor) {
+        return 'R$ ' + valor.toFixed(2).replace('.', ',');
+    }
+
+    function recalcularTudo() {
+        let totalGeral = 0;
+        document.querySelectorAll('.linha-item').forEach(linha => {
+            const qtd = parseFloat(linha.querySelector('.input-qtd').value) || 0;
+            const preco = parseFloat(linha.querySelector('.input-preco').value) || 0;
+            const subtotal = qtd * preco;
+            linha.querySelector('.subtotal-item').textContent = formatarReais(subtotal);
+            totalGeral += subtotal;
+        });
+        document.getElementById('total-geral').textContent = formatarReais(totalGeral);
+        document.getElementById('input-total').value = totalGeral.toFixed(2);
+    }
+
+    function vincularEventosLinha(linha) {
+        const selectProd = linha.querySelector('.select-produto');
+        const inputCodigo = linha.querySelector('.input-codigo');
+        const inputQtd = linha.querySelector('.input-qtd');
+        const inputPreco = linha.querySelector('.input-preco');
+        const btnRemover = linha.querySelector('.btn-remover');
+
+        selectProd.addEventListener('change', function() {
+            const option = this.options[this.selectedIndex];
+            const preco = parseFloat(option.getAttribute('data-preco')) || 0;
+            const codigo = option.getAttribute('data-codigo') || '';
+            inputPreco.value = preco.toFixed(2);
+            inputCodigo.value = codigo;
+            recalcularTudo();
+        });
+
+        inputCodigo.addEventListener('change', function() {
+            const code = this.value.trim();
+            if (!code) return;
+            for (let i = 0; i < selectProd.options.length; i++) {
+                if (selectProd.options[i].getAttribute('data-codigo') === code) {
+                    selectProd.selectedIndex = i;
+                    selectProd.dispatchEvent(new Event('change'));
+                    break;
+                }
+            }
+        });
+
+        inputQtd.addEventListener('input', recalcularTudo);
+
+        btnRemover.addEventListener('click', function() {
+            if (document.querySelectorAll('.linha-item').length > 1) {
+                linha.remove();
+                recalcularTudo();
+            }
+        });
+    }
+
+    // Vincula na primeira linha
+    vincularEventosLinha(corpoItens.querySelector('.linha-item'));
+
+    // Adicionar nova linha
+    btnAdd.addEventListener('click', function() {
+        const primeiraLinha = corpoItens.querySelector('.linha-item');
+        const novaLinha = primeiraLinha.cloneNode(true);
+        novaLinha.querySelector('.input-codigo').value = '';
+        novaLinha.querySelector('.select-produto').selectedIndex = 0;
+        novaLinha.querySelector('.input-qtd').value = 1;
+        novaLinha.querySelector('.input-preco').value = '0.00';
+        novaLinha.querySelector('.subtotal-item').textContent = 'R$ 0,00';
+        corpoItens.appendChild(novaLinha);
+        vincularEventosLinha(novaLinha);
+    });
+});
+</script>
+{% endblock %}
