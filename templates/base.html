@@ -17,7 +17,7 @@
         </nav>
     </header>
 
-    <main>
+    <main style="max-width: 1200px; width: 95%; margin: 24px auto;">
         {% for category, message in get_flashed_messages(with_categories=true) %}
             <div class="alert alert-{{ category }}">{{ message }}</div>
         {% endfor %}

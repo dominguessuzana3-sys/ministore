@@ -1,9 +1,8 @@
 import os
 import sys
 from datetime import date
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, flash, redirect, render_template, request, url_for
 from database import get_connection
-import mysql.connector
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
@@ -18,7 +17,6 @@ def listar_vendas():
     try:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
-        # Busca apenas as colunas existentes em vendas e junta com clientes
         query = """
             SELECT v.id, v.data_venda, v.total AS valor_total, c.nome AS cliente_nome
             FROM vendas v
@@ -28,7 +26,7 @@ def listar_vendas():
         cursor.execute(query)
         vendas = cursor.fetchall()
     except Exception as e:
-        flash(f'Erro ao procurar vendas: {e}', 'danger')
+        flash(f'Erro ao listar vendas: {e}', 'danger')
     finally:
         if cursor:
             cursor.close()
@@ -43,12 +41,8 @@ def nova_venda():
     cursor = None
     if request.method == 'POST':
         id_cliente = request.form.get('id_cliente')
-        data_venda = request.form.get('data_venda') or date.today()
-        valor_total = request.form.get('total') or request.form.get('valor_total') or 0
-
-        produtos_ids = request.form.getlist('produto_id[]')
-        quantidades = request.form.getlist('quantidade[]')
-        precos = request.form.getlist('preco_unit[]')
+        valor_total = request.form.get('valor_total') or request.form.get('total') or 0
+        hoje = date.today()
 
         if not id_cliente:
             flash('Selecione um cliente obrigatório.', 'warning')
@@ -57,24 +51,23 @@ def nova_venda():
         try:
             conn = get_connection()
             cursor = conn.cursor()
-
-            # Grava cabeçalho da venda (sem v.id_produto)
-            query_venda = """
+            query = """
                 INSERT INTO vendas (id_cliente, data_venda, total)
                 VALUES (%s, %s, %s)
             """
-            cursor.execute(query_venda, (id_cliente, data_venda, valor_total))
+            cursor.execute(query, (id_cliente, hoje, valor_total))
             venda_id = cursor.lastrowid
 
-            # Grava os itens na tabela itens_venda
-            if produtos_ids:
-                query_item = """
-                    INSERT INTO itens_venda (id_venda, id_produto, quantidade, preco_unitario)
-                    VALUES (%s, %s, %s, %s)
-                """
-                for prod_id, qtd, preco in zip(produtos_ids, quantidades, precos):
-                    if prod_id:
-                        cursor.execute(query_item, (venda_id, prod_id, qtd, preco))
+            produtos_ids = request.form.getlist('produto_id[]')
+            quantidades = request.form.getlist('quantidade[]')
+            precos = request.form.getlist('preco_unit[]')
+
+            for prod_id, qtd, preco in zip(produtos_ids, quantidades, precos):
+                if prod_id:
+                    cursor.execute("""
+                        INSERT INTO itens_venda (id_venda, id_produto, quantidade, preco_unitario)
+                        VALUES (%s, %s, %s, %s)
+                    """, (venda_id, prod_id, qtd, preco))
 
             conn.commit()
             flash('Venda registrada com sucesso!', 'success')
@@ -89,7 +82,6 @@ def nova_venda():
             if conn:
                 conn.close()
 
-    # GET: Carrega clientes e produtos
     clientes = []
     produtos = []
     try:
@@ -97,7 +89,7 @@ def nova_venda():
         cursor = conn.cursor(dictionary=True)
         cursor.execute('SELECT id, nome FROM clientes ORDER BY nome')
         clientes = cursor.fetchall()
-        cursor.execute('SELECT id, nome, preco, codigo FROM produtos ORDER BY nome')
+        cursor.execute('SELECT id, nome, preco FROM produtos ORDER BY nome')
         produtos = cursor.fetchall()
     except Exception as e:
         flash(f'Erro ao carregar dados: {e}', 'danger')
@@ -119,33 +111,27 @@ def detalhe_venda(id):
     try:
         conn = get_connection()
         cursor = conn.cursor(dictionary=True)
-
-        # Cabeçalho da venda
-        query_venda = """
+        cursor.execute("""
             SELECT v.id, v.data_venda, v.total AS valor_total, c.nome AS cliente_nome
             FROM vendas v
             LEFT JOIN clientes c ON v.id_cliente = c.id
             WHERE v.id = %s
-        """
-        cursor.execute(query_venda, (id,))
+        """, (id,))
         venda = cursor.fetchone()
 
         if not venda:
-            flash('Venda não encontrada.', 'danger')
+            flash('Venda não encontrada.', 'warning')
             return redirect(url_for('vendas.listar_vendas'))
 
-        # Itens associados na tabela itens_venda
-        query_itens = """
-            SELECT iv.quantidade, iv.preco_unitario, p.nome AS produto_nome, p.codigo AS codigo_barras
+        cursor.execute("""
+            SELECT iv.quantidade, iv.preco_unitario, p.nome AS produto_nome
             FROM itens_venda iv
             LEFT JOIN produtos p ON iv.id_produto = p.id
             WHERE iv.id_venda = %s
-        """
-        cursor.execute(query_itens, (id,))
+        """, (id,))
         itens = cursor.fetchall()
-
     except Exception as e:
-        flash(f'Erro ao carregar detalhes da venda: {e}', 'danger')
+        flash(f'Erro ao carregar detalhes: {e}', 'danger')
         return redirect(url_for('vendas.listar_vendas'))
     finally:
         if cursor:
@@ -153,7 +139,7 @@ def detalhe_venda(id):
         if conn:
             conn.close()
 
-    return render_template('detalhe_venda.html', venda=venda, itens=itens)
+    return render_template('detalhe_vendas.html', venda=venda, itens=itens)
 
 
 @vendas_bp.route('/<int:id>/excluir', methods=['POST'])
@@ -163,7 +149,6 @@ def excluir_venda(id):
     try:
         conn = get_connection()
         cursor = conn.cursor()
-        cursor.execute('DELETE FROM itens_venda WHERE id_venda = %s', (id,))
         cursor.execute('DELETE FROM vendas WHERE id = %s', (id,))
         conn.commit()
         flash('Venda excluída com sucesso!', 'success')

@@ -3,42 +3,42 @@
 {% block title %}Dashboard — MiniStore{% endblock %}
 
 {% block content %}
-<div class="page-header mb-4">
-    <h1>Painel de Controle</h1>
-    <p class="text-muted">Visão geral do sistema MiniStore</p>
+<div class="page-header">
+    <div>
+        <h1>Dashboard</h1>
+        <p style="color: #6c757d; margin-top: 4px;">Resumo geral do sistema MiniStore</p>
+    </div>
 </div>
 
-<div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <div class="card shadow-sm border-start border-primary border-4 p-3">
-            <h6 class="text-uppercase text-muted mb-2">Clientes</h6>
-            <h2 class="fw-bold mb-2">{{ totais.clientes }}</h2>
-            <a href="{{ url_for('clientes.listar') }}" class="text-decoration-none small text-primary">Gerenciar Clientes &rarr;</a>
-        </div>
-    </div>
+<div class="dashboard-grid">
+    <a href="{{ url_for('clientes.listar') }}" class="stat-card" style="border-left-color: #1a1a2e;">
+        <span class="stat-number">{{ totais.clientes }}</span>
+        <span class="stat-label">Clientes</span>
+    </a>
 
-    <div class="col-md-3">
-        <div class="card shadow-sm border-start border-success border-4 p-3">
-            <h6 class="text-uppercase text-muted mb-2">Categorias</h6>
-            <h2 class="fw-bold mb-2">{{ totais.categorias }}</h2>
-            <a href="{{ url_for('categorias.listar') }}" class="text-decoration-none small text-success">Gerenciar Categorias &rarr;</a>
-        </div>
-    </div>
+    <a href="{{ url_for('categorias.listar') }}" class="stat-card" style="border-left-color: #0d6efd;">
+        <span class="stat-number">{{ totais.categorias }}</span>
+        <span class="stat-label">Categorias</span>
+    </a>
 
-    <div class="col-md-3">
-        <div class="card shadow-sm border-start border-warning border-4 p-3">
-            <h6 class="text-uppercase text-muted mb-2">Produtos</h6>
-            <h2 class="fw-bold mb-2">{{ totais.produtos }}</h2>
-            <a href="{{ url_for('produtos.listar') }}" class="text-decoration-none small text-warning">Gerenciar Produtos &rarr;</a>
-        </div>
-    </div>
+    <a href="{{ url_for('produtos.listar') }}" class="stat-card" style="border-left-color: #198754;">
+        <span class="stat-number">{{ totais.produtos }}</span>
+        <span class="stat-label">Produtos</span>
+    </a>
 
-    <div class="col-md-3">
-        <div class="card shadow-sm border-start border-danger border-4 p-3">
-            <h6 class="text-uppercase text-muted mb-2">Vendas</h6>
-            <h2 class="fw-bold mb-2">{{ totais.vendas }}</h2>
-            <a href="{{ url_for('vendas.listar_vendas') }}" class="text-decoration-none small text-danger">Ver Histórico &rarr;</a>
-        </div>
+    <a href="{{ url_for('vendas.listar_vendas') }}" class="stat-card" style="border-left-color: #e94560;">
+        <span class="stat-number">{{ totais.vendas }}</span>
+        <span class="stat-label">Vendas</span>
+    </a>
+</div>
+
+<div class="card-atalhos">
+    <h2 style="font-size: 20px; margin-bottom: 16px; color: #1a1a2e;">Acesso Rápido</h2>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <a href="{{ url_for('vendas.nova_venda') }}" class="btn btn-primary">+ Nova Venda</a>
+        <a href="{{ url_for('clientes.novo') }}" class="btn btn-secondary">+ Novo Cliente</a>
+        <a href="{{ url_for('produtos.novo') }}" class="btn btn-secondary">+ Novo Produto</a>
+        <a href="{{ url_for('categorias.nova') }}" class="btn btn-secondary">+ Nova Categoria</a>
     </div>
 </div>
 {% endblock %}

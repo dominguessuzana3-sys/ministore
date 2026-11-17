@@ -4,25 +4,41 @@
 
 {% block content %}
 <div class="page-header">
-    <h1>Dashboard</h1>
+    <div>
+        <h1>Dashboard</h1>
+        <p style="color: #6c757d; margin-top: 4px;">Resumo geral do sistema MiniStore</p>
+    </div>
 </div>
 
-<div class="cards">
-    <div class="card">
-        <div class="card-valor">{{ totais.clientes }}</div>
-        <div class="card-label">Clientes</div>
-    </div>
-    <div class="card">
-        <div class="card-valor">{{ totais.categorias }}</div>
-        <div class="card-label">Categorias</div>
-    </div>
-    <div class="card">
-        <div class="card-valor">{{ totais.produtos }}</div>
-        <div class="card-label">Produtos</div>
-    </div>
-    <div class="card">
-        <div class="card-valor">{{ totais.vendas }}</div>
-        <div class="card-label">Vendas</div>
+<div class="dashboard-grid">
+    <a href="{{ url_for('clientes.listar') }}" class="stat-card" style="border-left-color: #1a1a2e;">
+        <span class="stat-number">{{ totais.clientes }}</span>
+        <span class="stat-label">Clientes</span>
+    </a>
+
+    <a href="{{ url_for('categorias.listar') }}" class="stat-card" style="border-left-color: #0d6efd;">
+        <span class="stat-number">{{ totais.categorias }}</span>
+        <span class="stat-label">Categorias</span>
+    </a>
+
+    <a href="{{ url_for('produtos.listar') }}" class="stat-card" style="border-left-color: #198754;">
+        <span class="stat-number">{{ totais.produtos }}</span>
+        <span class="stat-label">Produtos</span>
+    </a>
+
+    <a href="{{ url_for('vendas.listar_vendas') }}" class="stat-card" style="border-left-color: #e94560;">
+        <span class="stat-number">{{ totais.vendas }}</span>
+        <span class="stat-label">Vendas</span>
+    </a>
+</div>
+
+<div class="card-atalhos">
+    <h2 style="font-size: 20px; margin-bottom: 16px; color: #1a1a2e;">Acesso Rápido</h2>
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <a href="{{ url_for('vendas.nova_venda') }}" class="btn btn-primary">+ Nova Venda</a>
+        <a href="{{ url_for('clientes.novo') }}" class="btn btn-secondary">+ Novo Cliente</a>
+        <a href="{{ url_for('produtos.novo') }}" class="btn btn-secondary">+ Novo Produto</a>
+        <a href="{{ url_for('categorias.nova') }}" class="btn btn-secondary">+ Nova Categoria</a>
     </div>
 </div>
 {% endblock %}
